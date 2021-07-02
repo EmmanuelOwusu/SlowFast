@@ -78,7 +78,7 @@ def run_visualization(vis_loader, model, cfg, writer=None):
         )
     logger.info("Finish drawing weights.")
     global_idx = -1
-    for inputs, labels, _, meta in tqdm.tqdm(vis_loader):
+    for (inputs,filename), labels, _, meta in tqdm.tqdm(vis_loader):           ##add filename
         if cfg.NUM_GPUS:
             # Transfer the data to the current GPU device.
             if isinstance(inputs, (list,)):
@@ -104,7 +104,7 @@ def run_visualization(vis_loader, model, cfg, writer=None):
             if cfg.TENSORBOARD.MODEL_VIS.GRAD_CAM.USE_TRUE_LABEL:
                 inputs, preds = gradcam(inputs, labels=labels)
             else:
-                inputs, preds = gradcam(inputs)
+                inputs, preds = gradcam(inputs,filename)      ##added filename
         if cfg.NUM_GPUS:
             inputs = du.all_gather_unaligned(inputs)
             activations = du.all_gather_unaligned(activations)
@@ -307,7 +307,7 @@ def visualize(cfg):
             if cfg.TENSORBOARD.MODEL_VIS.GRAD_CAM.ENABLE:
                 assert (
                     not cfg.DETECTION.ENABLE
-                ), "Detection task is currently not supported for Grad-CAM visualization."
+               ), "Detection task is currently not supported for Grad-CAM visualization."
                 if cfg.MODEL.ARCH in cfg.MODEL.SINGLE_PATHWAY_ARCH:
                     assert (
                         len(cfg.TENSORBOARD.MODEL_VIS.GRAD_CAM.LAYER_LIST) == 1
@@ -345,3 +345,4 @@ def visualize(cfg):
 
         if writer is not None:
             writer.close()
+

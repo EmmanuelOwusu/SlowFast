@@ -4,9 +4,15 @@
 import matplotlib.pyplot as plt
 import torch
 import torch.nn.functional as F
-
+import numpy
 import slowfast.datasets.utils as data_utils
 from slowfast.visualization.utils import get_layer
+import pickle
+from pathlib import Path
+
+
+path = Path('/mnt/data/ni/ahenkan/SlowFast')
+path.mkdir(parents=True, exist_ok=True)
 
 
 class GradCAM:
@@ -78,6 +84,7 @@ class GradCAM:
                 each corresponding input.
             preds (tensor): shape (n_instances, n_class). Model predictions for `inputs`.
         """
+        inputs, filename = inputs                   ##extract old inputs
         assert len(inputs) == len(
             self.target_layers
         ), "Must register the same number of target layers as the number of input pathways."
@@ -107,8 +114,8 @@ class GradCAM:
             weights = weights.view(B, C, Tg, 1, 1)
             localization_map = torch.sum(
                 weights * activations, dim=1, keepdim=True
-            )
-            localization_map = F.relu(localization_map)
+            )   
+            localization_map = F.relu(localization_map)  ## We apply ReLU to the linear combination of maps
             localization_map = F.interpolate(
                 localization_map,
                 size=(T, H, W),
@@ -138,6 +145,8 @@ class GradCAM:
             localization_maps.append(localization_map)
 
         return localization_maps, preds
+     #   print(localization_maps)
+
 
     def __call__(self, inputs, labels=None, alpha=0.5):
         """
@@ -155,15 +164,20 @@ class GradCAM:
         localization_maps, preds = self._calculate_localization_map(
             inputs, labels=labels
         )
+        inputs, filename = inputs                        ##extract old inputs
         for i, localization_map in enumerate(localization_maps):
             # Convert (B, 1, T, H, W) to (B, T, H, W)
             localization_map = localization_map.squeeze(dim=1)
+            #print(localization_map)
+
             if localization_map.device != torch.device("cpu"):
                 localization_map = localization_map.cpu()
-            heatmap = self.colormap(localization_map)
+            numpy.save(path/f'localization_map_{i}_{hash(localization_map)}.npy', localization_map.numpy(),fix_imports=True)
+            heatmap = self.colormap(localization_map.numpy())  ## converted torch to numpy
             heatmap = heatmap[:, :, :, :, :3]
             # Permute input from (B, C, T, H, W) to (B, T, H, W, C)
             curr_inp = inputs[i].permute(0, 2, 3, 4, 1)
+            ## curr_inp = inputs[i].permute(0, 4, 2, 3, 1)
             if curr_inp.device != torch.device("cpu"):
                 curr_inp = curr_inp.cpu()
             curr_inp = data_utils.revert_tensor_normalize(
@@ -176,3 +190,4 @@ class GradCAM:
             result_ls.append(curr_inp)
 
         return result_ls, preds
+

@@ -264,7 +264,8 @@ class Mydata(torch.utils.data.Dataset):
 
             label = self._labels[index]
             frames = utils.pack_pathway_output(self.cfg, frames)
-            return frames, label, index, {}
+            #return frames, label, index, {}
+            return (frames,self._path_to_videos[index]) ,label, index, {}        ##Added
         else:
             raise RuntimeError(
                 "Failed to fetch video after {} retries.".format(
@@ -286,3 +287,4 @@ class Mydata(torch.utils.data.Dataset):
             (int): the number of videos in the dataset.
         """
         return len(self._path_to_videos)
+
