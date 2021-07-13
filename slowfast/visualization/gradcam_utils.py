@@ -8,10 +8,13 @@ import numpy
 import slowfast.datasets.utils as data_utils
 from slowfast.visualization.utils import get_layer
 import pickle
+import pathlib
 from pathlib import Path
+import os
+import json
 
 
-path = Path('/mnt/data/ni/ahenkan/SlowFast')
+path = Path('/mnt/data/ni/ahenkan/SlowFast/')
 path.mkdir(parents=True, exist_ok=True)
 
 
@@ -84,11 +87,11 @@ class GradCAM:
                 each corresponding input.
             preds (tensor): shape (n_instances, n_class). Model predictions for `inputs`.
         """
-        inputs, filename = inputs                   ##extract old inputs
         assert len(inputs) == len(
             self.target_layers
         ), "Must register the same number of target layers as the number of input pathways."
         input_clone = [inp.clone() for inp in inputs]
+       # input_clone = [inp.copy() for inp in inputs]
         preds = self.model(input_clone)
 
         if labels is None:
@@ -161,18 +164,36 @@ class GradCAM:
             preds (tensor): shape (n_instances, n_class). Model predictions for `inputs`.
         """
         result_ls = []
+        inputs, filenames = inputs                        ##extract old inputs
         localization_maps, preds = self._calculate_localization_map(
             inputs, labels=labels
         )
-        inputs, filename = inputs                        ##extract old inputs
-        for i, localization_map in enumerate(localization_maps):
+        print(f'The lenght of the inputs is {len(inputs)}')
+        my_data = {}
+        ## Saving dictionary of inputs and localization map
+        for i, (localization_map, filename) in enumerate(zip(localization_maps, filenames)):
             # Convert (B, 1, T, H, W) to (B, T, H, W)
             localization_map = localization_map.squeeze(dim=1)
             #print(localization_map)
-
+                
             if localization_map.device != torch.device("cpu"):
                 localization_map = localization_map.cpu()
-            numpy.save(path/f'localization_map_{i}_{hash(localization_map)}.npy', localization_map.numpy(),fix_imports=True)
+            dict_inputs = inputs[i]
+            if dict_inputs.device != torch.device("cpu"):
+                dict_inputs = dict_inputs.cpu()
+                #input_cpu = dict_inputs.copy()
+            #pathlib.Path(filename)
+            filename_path = pathlib.Path(filename)
+            #video=os.path.basename(filename)
+            #numpy.save(path/f'localization_map_{filename_path.parent.stem}_{i}_{hash(localization_map)}.npy', localization_map.numpy(),fix_imports=True)
+            #numpy.save(path/f'input_{i}.npy', input.numpy())
+            input_locmap = dict([(f'localization_map_{filename_path.parent.stem}_{i}_{hash(localization_map)}.npy', localization_map.numpy()),
+            (f'inputNew_{i}.npy', dict_inputs.numpy())])               ## creating dictionary with localization maps and inputs
+            my_data.update(input_locmap)
+            save_file = open("data1.pkl","wb")                       ## Saving the dictionary created   
+            pickle.dump(my_data,  save_file)
+            save_file.close()
+
             heatmap = self.colormap(localization_map.numpy())  ## converted torch to numpy
             heatmap = heatmap[:, :, :, :, :3]
             # Permute input from (B, C, T, H, W) to (B, T, H, W, C)
