@@ -169,7 +169,9 @@ class GradCAM:
             inputs, labels=labels
         )
         print(f'The lenght of the inputs is {len(inputs)}')
-        my_data = {}
+
+        complete_locmap_input = {}
+
         ## Saving dictionary of inputs and localization map
         for i, (localization_map, filename) in enumerate(zip(localization_maps, filenames)):
             # Convert (B, 1, T, H, W) to (B, T, H, W)
@@ -187,12 +189,17 @@ class GradCAM:
             #video=os.path.basename(filename)
             #numpy.save(path/f'localization_map_{filename_path.parent.stem}_{i}_{hash(localization_map)}.npy', localization_map.numpy(),fix_imports=True)
             #numpy.save(path/f'input_{i}.npy', input.numpy())
-            input_locmap = dict([(f'localization_map_{filename_path.parent.stem}_{i}_{hash(localization_map)}.npy', localization_map.numpy()),
-            (f'inputNew_{i}.npy', dict_inputs.numpy())])               ## creating dictionary with localization maps and inputs
-            my_data.update(input_locmap)
-            save_file = open("data1.pkl","wb")                       ## Saving the dictionary created   
-            pickle.dump(my_data,  save_file)
-            save_file.close()
+            hash_val = hash(localization_map)
+            locmap_input = {
+                f'localization_map_{i}_{hash_val}.npy': localization_map.numpy(),
+                f'inputNew_{i}_{hash_val}.npy': dict_inputs.numpy()
+            }
+
+            if f'{filename_path.parent.stem}' not in complete_locmap_input:
+                complete_locmap_input[f'{filename_path.parent.stem}'] = {}
+
+            complete_locmap_input[f'{filename_path.parent.stem}'].update(
+                locmap_input)
 
             heatmap = self.colormap(localization_map.numpy())  ## converted torch to numpy
             heatmap = heatmap[:, :, :, :, :3]
@@ -209,6 +216,17 @@ class GradCAM:
             # Permute inp to (B, T, C, H, W)
             curr_inp = curr_inp.permute(0, 1, 4, 2, 3)
             result_ls.append(curr_inp)
+
+        if os.path.exists("complete_locmap_input.pkl"):
+            with open("complete_locmap_input.pkl", "rb") as save_file:  # Saving the dictionary created
+                save_complete_locmap_input = pickle.load(save_file)
+        else:
+            save_complete_locmap_input = {}
+
+        with open("complete_locmap_input.pkl", "wb") as save_file:  # Saving the dictionary created
+            pickle.dump(save_complete_locmap_input.update(
+                complete_locmap_input), save_file)
+
 
         return result_ls, preds
 
