@@ -174,15 +174,15 @@ class Mydata(torch.utils.data.Dataset):
                 if self.cfg.TEST.NUM_SPATIAL_CROPS > 1
                 else 1
             )
-            min_scale, max_scale, crop_size = (
-                [self.cfg.DATA.TEST_CROP_SIZE] * 3
-                if self.cfg.TEST.NUM_SPATIAL_CROPS > 1
-                else [self.cfg.DATA.TRAIN_JITTER_SCALES[0]] * 2
-                + [self.cfg.DATA.TEST_CROP_SIZE]
-            )
+            # min_scale, max_scale, crop_size = (
+            #     [self.cfg.DATA.TEST_CROP_SIZE] * 3
+            #     if self.cfg.TEST.NUM_SPATIAL_CROPS > 1
+            #     else [self.cfg.DATA.TRAIN_JITTER_SCALES[0]] * 2
+            #     + [self.cfg.DATA.TEST_CROP_SIZE]
+            # )
             # The testing is deterministic and no jitter should be performed.
             # min_scale, max_scale, and crop_size are expect to be the same.
-            assert len({min_scale, max_scale}) == 1
+            # assert len({min_scale, max_scale}) == 1
         else:
             raise NotImplementedError(
                 "Does not support {} mode".format(self.mode)
@@ -229,7 +229,7 @@ class Mydata(torch.utils.data.Dataset):
                 video_meta=self._video_meta[index],
                 target_fps=self.cfg.DATA.TARGET_FPS,
                 backend=self.cfg.DATA.DECODING_BACKEND,
-                max_spatial_scale=min_scale,
+                # max_spatial_scale=min_scale,
             )
 
             # If decoding failed (wrong format, video is too short, and etc),
@@ -252,20 +252,21 @@ class Mydata(torch.utils.data.Dataset):
             # T H W C -> C T H W.
             frames = frames.permute(3, 0, 1, 2)
             # Perform data augmentation.
-            frames = utils.spatial_sampling(
-                frames,
-                spatial_idx=spatial_sample_index,
-                min_scale=min_scale,
-                max_scale=max_scale,
-                crop_size=crop_size,
-                random_horizontal_flip=self.cfg.DATA.RANDOM_FLIP,
-                inverse_uniform_sampling=self.cfg.DATA.INV_UNIFORM_SAMPLE,
-            )
+            # frames = utils.spatial_sampling(
+            #     frames,
+            #     spatial_idx=spatial_sample_index,
+            #     min_scale=min_scale,
+            #     max_scale=max_scale,
+            #     crop_size=crop_size,
+            #     random_horizontal_flip=self.cfg.DATA.RANDOM_FLIP,
+            #     inverse_uniform_sampling=self.cfg.DATA.INV_UNIFORM_SAMPLE,
+            # )
 
             label = self._labels[index]
             frames = utils.pack_pathway_output(self.cfg, frames)
+            # import ipdb; ipdb.set_trace() # debugging starts here
             #return frames, label, index, {}
-            return (frames,self._path_to_videos[index]) ,label, index, {}        ##Added
+            return frames,self._path_to_videos[index] ,label, index, {}        ##Added
         else:
             raise RuntimeError(
                 "Failed to fetch video after {} retries.".format(
@@ -287,4 +288,3 @@ class Mydata(torch.utils.data.Dataset):
             (int): the number of videos in the dataset.
         """
         return len(self._path_to_videos)
-

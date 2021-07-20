@@ -35,12 +35,14 @@ class Predictor:
             )
 
         # Build the video model and print model statistics.
-        self.model = build_model(cfg, gpu_id=gpu_id)
+      #  self.model = build_model(cfg, gpu_id=gpu_id)
+        self.model = build_model(cfg, gpu_id=None)
         self.model.eval()
         self.cfg = cfg
 
         if cfg.DETECTION.ENABLE:
-            self.object_detector = Detectron2Predictor(cfg, gpu_id=self.gpu_id)
+#            self.object_detector = Detectron2Predictor(cfg, gpu_id=self.gpu_id)
+            self.object_detector = Detectron2Predictor(cfg, gpu_id= None)
 
         logger.info("Start loading model weights.")
         cu.load_test_checkpoint(cfg, self.model)
@@ -129,7 +131,8 @@ class ActionPredictor:
             async_vis (AsyncVis object): asynchronous visualizer.
             gpu_id (Optional[int]): GPU id.
         """
-        self.predictor = Predictor(cfg=cfg, gpu_id=gpu_id)
+        #self.predictor = Predictor(cfg=cfg, gpu_id=gpu_id)
+        self.predictor = Predictor(cfg=cfg, gpu_id=None)
         self.async_vis = async_vis
 
     def put(self, task):

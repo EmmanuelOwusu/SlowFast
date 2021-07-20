@@ -24,7 +24,7 @@ class Ava(torch.utils.data.Dataset):
         self.cfg = cfg
         self._split = split
         self._sample_rate = cfg.DATA.SAMPLING_RATE
-        self._video_length = cfg.DATA.NUM_FRAMES
+        self._video_length =  cfg.DATA.NUM_FRAMES
         self._seq_len = self._video_length * self._sample_rate
         self._num_classes = cfg.MODEL.NUM_CLASSES
         # Augmentation params.
@@ -369,7 +369,7 @@ class Ava(torch.utils.data.Dataset):
             center_idx,
             self._seq_len // 2,
             self._sample_rate,
-            num_frames=len(self._image_paths[video_idx]),
+            num_frames =  31# len(self._image_paths[video_idx]),
         )
 
         clip_label_list = self._keyframe_boxes_and_labels[video_idx][sec_idx]

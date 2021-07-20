@@ -6,6 +6,16 @@ from fvcore.common.config import CfgNode
 
 from . import custom_config
 
+# Config base directory
+
+import platform 
+if platform.node() == "sabik":
+    basepath = "/mnt/data/ni/ahenkan"
+elif platform.node() == "aims-pc":
+    basepath = "/home/aims/Downloads/SCIOI_PROJECT"
+else:
+    raise Exception(f"Unknown hostname: {platform.node()}")
+
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
@@ -43,10 +53,10 @@ _C.BN.NUM_SYNC_DEVICES = 1
 _C.TRAIN = CfgNode()
 
 # If True Train the model, else skip training.
-_C.TRAIN.ENABLE = True
+_C.TRAIN.ENABLE = False
 
 # Dataset.
-_C.TRAIN.DATASET = "kinetics"
+_C.TRAIN.DATASET = "MyData" #"kinetics"
 
 # Total mini-batch size.
 _C.TRAIN.BATCH_SIZE = 64
@@ -58,7 +68,7 @@ _C.TRAIN.EVAL_PERIOD = 10
 _C.TRAIN.CHECKPOINT_PERIOD = 10
 
 # Resume training from the latest checkpoint in the output directory.
-_C.TRAIN.AUTO_RESUME = True
+_C.TRAIN.AUTO_RESUME = False
 
 # Path to the checkpoint to load the initial weight.
 _C.TRAIN.CHECKPOINT_FILE_PATH = ""
@@ -81,7 +91,7 @@ _C.TRAIN.CHECKPOINT_CLEAR_NAME_PATTERN = ()  # ("backbone.",)
 _C.TEST = CfgNode()
 
 # If True test the model, else skip the testing.
-_C.TEST.ENABLE = True
+_C.TEST.ENABLE = False
 
 # Dataset for testing.
 _C.TEST.DATASET = "kinetics"
@@ -98,14 +108,14 @@ _C.TEST.NUM_ENSEMBLE_VIEWS = 10
 
 # Number of crops to sample from a frame spatially for aggregating the
 # prediction results.
-_C.TEST.NUM_SPATIAL_CROPS = 3
+_C.TEST.NUM_SPATIAL_CROPS = 1
 
 # Checkpoint types include `caffe2` or `pytorch`.
 _C.TEST.CHECKPOINT_TYPE = "pytorch"
 # Path to saving prediction results file.
 _C.TEST.SAVE_RESULTS_PATH = ""
 # -----------------------------------------------------------------------------
-# ResNet options
+# ResNet optionstest_loadertest_loader
 # -----------------------------------------------------------------------------
 _C.RESNET = CfgNode()
 
@@ -261,7 +271,7 @@ _C.SLOWFAST.FUSION_KERNEL_SZ = 5
 _C.DATA = CfgNode()
 
 # The path to the data directory.
-_C.DATA.PATH_TO_DATA_DIR = ""
+_C.DATA.PATH_TO_DATA_DIR = " "
 
 # The separator used between path and label.
 _C.DATA.PATH_LABEL_SEPARATOR = " "
@@ -291,11 +301,11 @@ _C.DATA.TRAIN_JITTER_SCALES = [256, 320]
 _C.DATA.TRAIN_CROP_SIZE = 224
 
 # The spatial crop size for testing.
-_C.DATA.TEST_CROP_SIZE = 256
-
+_C.DATA.TEST_CROP_SIZE = 256   ## try change this value
+ 
 # Input videos may has different fps, convert it to the target video fps before
 # frame sampling.
-_C.DATA.TARGET_FPS = 30
+_C.DATA.TARGET_FPS =  30
 
 # Decoding backend, options include `pyav` or `torchvision`
 _C.DATA.DECODING_BACKEND = "pyav"
@@ -345,7 +355,7 @@ _C.SOLVER.STEPS = []
 _C.SOLVER.LRS = []
 
 # Maximal number of epochs.
-_C.SOLVER.MAX_EPOCH = 300
+_C.SOLVER.MAX_EPOCH =  1 # 300
 
 # Momentum.
 _C.SOLVER.MOMENTUM = 0.9
@@ -456,24 +466,42 @@ _C.DETECTION.ROI_XFORM_RESOLUTION = 7
 # -----------------------------------------------------------------------------
 _C.AVA = CfgNode()
 
+## Directory path of frames.
+#_C.AVA.FRAME_DIR = "/mnt/fair-flash3-east/ava_trainval_frames.img/"
+
+
 # Directory path of frames.
-_C.AVA.FRAME_DIR = "/mnt/fair-flash3-east/ava_trainval_frames.img/"
+_C.AVA.FRAME_DIR =   f"{basepath}/SlowFast/demo/AVA/"
+
 
 # Directory path for files of frame lists.
+
+#_C.AVA.FRAME_LIST_DIR = (
+#    "/mnt/vol/gfsai-flash3-east/ai-group/users/haoqifan/ava/frame_list/"
+#)
+
 _C.AVA.FRAME_LIST_DIR = (
-    "/mnt/vol/gfsai-flash3-east/ai-group/users/haoqifan/ava/frame_list/"
+    #f"{basepath}/SlowFast/demo/AVA/"
+    f"{basepath}/SlowFast/configs/DHF1K"
 )
+
+## Directory path for annotation files.
+#_C.AVA.ANNOTATION_DIR = (
+#    "/mnt/vol/gfsai-flash3-east/ai-group/users/haoqifan/ava/frame_list/"
+#)
 
 # Directory path for annotation files.
 _C.AVA.ANNOTATION_DIR = (
-    "/mnt/vol/gfsai-flash3-east/ai-group/users/haoqifan/ava/frame_list/"
+   f"{basepath}/SlowFast/demo/AVA/"
 )
+
 
 # Filenames of training samples list files.
 _C.AVA.TRAIN_LISTS = ["train.csv"]
 
 # Filenames of test samples list files.
-_C.AVA.TEST_LISTS = ["val.csv"]
+_C.AVA.TEST_LISTS = ["val.csv"] 
+#_C.AVA.TEST_LISTS = ["demo/AVA/val.csv"]
 
 # Filenames of box list files for training. Note that we assume files which
 # contains predicted boxes will have a suffix "predicted_boxes" in the
@@ -576,18 +604,18 @@ _C.TENSORBOARD = CfgNode()
 
 # Log to summary writer, this will automatically.
 # log loss, lr and metrics during train/eval.
-_C.TENSORBOARD.ENABLE = False
+_C.TENSORBOARD.ENABLE = True
 # Provide path to prediction results for visualization.
 # This is a pickle file of [prediction_tensor, label_tensor]
-_C.TENSORBOARD.PREDICTIONS_PATH = ""
+_C.TENSORBOARD.PREDICTIONS_PATH = "" # f"{basepath}/SlowFast/Output/Output/"
 # Path to directory for tensorboard logs.
 # Default to to cfg.OUTPUT_DIR/runs-{cfg.TRAIN.DATASET}.
-_C.TENSORBOARD.LOG_DIR = ""
+_C.TENSORBOARD.LOG_DIR = f"{basepath}/SlowFast/Output/Output/"
 # Path to a json file providing class_name - id mapping
 # in the format {"class_name1": id1, "class_name2": id2, ...}.
 # This file must be provided to enable plotting confusion matrix
 # by a subset or parent categories.
-_C.TENSORBOARD.CLASS_NAMES_PATH = ""
+_C.TENSORBOARD.CLASS_NAMES_PATH =  f"{basepath}/SlowFast/kinetics_classnames.json"   ##f"{basepath}/SlowFast/ava.json" ##Use for ava class names.
 
 # Path to a json file for categories -> classes mapping
 # in the format {"parent_class": ["child_class1", "child_class2",...], ...}.
@@ -630,7 +658,7 @@ _C.TENSORBOARD.MODEL_VIS.MODEL_WEIGHTS = False
 _C.TENSORBOARD.MODEL_VIS.ACTIVATIONS = False
 
 # If False, skip visualizing input videos.
-_C.TENSORBOARD.MODEL_VIS.INPUT_VIDEO = False
+_C.TENSORBOARD.MODEL_VIS.INPUT_VIDEO = True
 
 
 # List of strings containing data about layer names and their indexing to
@@ -640,7 +668,7 @@ _C.TENSORBOARD.MODEL_VIS.INPUT_VIDEO = False
 # For each string, layer name and indexing is separated by whitespaces.
 # e.g.: [layer1 1,2;1,2, layer2, layer3 150,151;3,4]; this means for each array `arr`
 # along the batch dimension in `layer1`, we take arr[[1, 2], [1, 2]]
-_C.TENSORBOARD.MODEL_VIS.LAYER_LIST = []
+_C.TENSORBOARD.MODEL_VIS.LAYER_LIST =  ['s5/pathway1_res2', 's5/pathway0_res2']  #[[1, 2], [1, 2]] # []
 # Top-k predictions to plot on videos
 _C.TENSORBOARD.MODEL_VIS.TOPK_PREDS = 1
 # Colormap to for text boxes and bounding boxes colors
@@ -652,7 +680,7 @@ _C.TENSORBOARD.MODEL_VIS.GRAD_CAM = CfgNode()
 _C.TENSORBOARD.MODEL_VIS.GRAD_CAM.ENABLE = True
 # CNN layers to use for Grad-CAM. The number of layers must be equal to
 # number of pathway(s).
-_C.TENSORBOARD.MODEL_VIS.GRAD_CAM.LAYER_LIST = []
+_C.TENSORBOARD.MODEL_VIS.GRAD_CAM.LAYER_LIST =['s5/pathway1_res2', 's5/pathway0_res2']
 # If True, visualize Grad-CAM using true labels for each instances.
 # If False, use the highest predicted class.
 _C.TENSORBOARD.MODEL_VIS.GRAD_CAM.USE_TRUE_LABEL = False
@@ -676,7 +704,7 @@ _C.TENSORBOARD.WRONG_PRED_VIS.SUBSET_PATH = ""
 _C.DEMO = CfgNode()
 
 # Run model in DEMO mode.
-_C.DEMO.ENABLE = False
+_C.DEMO.ENABLE = True
 
 # Path to a json file providing class_name - id mapping
 # in the format {"class_name1": id1, "class_name2": id2, ...}.
@@ -688,7 +716,8 @@ _C.DEMO.LABEL_FILE_PATH = ""
 _C.DEMO.WEBCAM = -1
 
 # Path to input video for demo.
-_C.DEMO.INPUT_VIDEO = ""
+_C.DEMO.DATA_SOURCE = " configs/Kinetics/data"  #Sample.mp4"
+_C.DEMO.INPUT_VIDEO =  "" #Sample.mp4"
 # Custom width for reading input video data.
 _C.DEMO.DISPLAY_WIDTH = 0
 # Custom height for reading input video data.
@@ -768,16 +797,16 @@ def assert_and_infer_cfg(cfg):
         assert cfg.BN.NUM_BATCHES_PRECISE >= 0
     # TRAIN assertions.
     assert cfg.TRAIN.CHECKPOINT_TYPE in ["pytorch", "caffe2"]
-    assert cfg.TRAIN.BATCH_SIZE % cfg.NUM_GPUS == 0
+  #  assert cfg.TRAIN.BATCH_SIZE % cfg.NUM_GPUS == 0 
 
     # TEST assertions.
     assert cfg.TEST.CHECKPOINT_TYPE in ["pytorch", "caffe2"]
-    assert cfg.TEST.BATCH_SIZE % cfg.NUM_GPUS == 0
+   # assert cfg.TEST.BATCH_SIZE % cfg.NUM_GPUS == 0 
 
     # RESNET assertions.
     assert cfg.RESNET.NUM_GROUPS > 0
     assert cfg.RESNET.WIDTH_PER_GROUP > 0
-    assert cfg.RESNET.WIDTH_PER_GROUP % cfg.RESNET.NUM_GROUPS == 0
+  # assert cfg.RESNET.WIDTH_PER_GROUP % cfg.RESNET.NUM_GROUPS == 0 
 
     # Execute LR scaling by num_shards.
     if cfg.SOLVER.BASE_LR_SCALE_NUM_SHARDS:

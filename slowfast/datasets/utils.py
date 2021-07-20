@@ -81,6 +81,7 @@ def pack_pathway_output(cfg, frames):
         frame_list (list): list of tensors with the dimension of
             `channel` x `num frames` x `height` x `width`.
     """
+    
     if cfg.DATA.REVERSE_INPUT_CHANNEL:
         frames = frames[[2, 1, 0], :, :, :]
     if cfg.MODEL.ARCH in cfg.MODEL.SINGLE_PATHWAY_ARCH:
@@ -103,6 +104,7 @@ def pack_pathway_output(cfg, frames):
                 cfg.MODEL.SINGLE_PATHWAY_ARCH + cfg.MODEL.MULTI_PATHWAY_ARCH,
             )
         )
+    
     return frame_list
 
 

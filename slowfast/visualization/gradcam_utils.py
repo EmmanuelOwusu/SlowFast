@@ -163,45 +163,34 @@ class GradCAM:
             result_ls (list of tensor(s)): the visualized inputs.
             preds (tensor): shape (n_instances, n_class). Model predictions for `inputs`.
         """
+        # import ipdb; ipdb.set_trace() # debugging starts here
         result_ls = []
         inputs, filenames = inputs                        ##extract old inputs
         localization_maps, preds = self._calculate_localization_map(
             inputs, labels=labels
         )
-        print(f'The lenght of the inputs is {len(inputs)}')
+       # print(f'The lenght of the inputs is {len(inputs)}')
+        # import ipdb; ipdb.set_trace() # debugging starts here
 
-        complete_locmap_input = {}
+        loc_maps = [] # should be [slow, fast]
+        inputs_cpu = [inp.clone().cpu().numpy() for inp in inputs]
 
         ## Saving dictionary of inputs and localization map
-        for i, (localization_map, filename) in enumerate(zip(localization_maps, filenames)):
+        for i, localization_map in enumerate(localization_maps):
             # Convert (B, 1, T, H, W) to (B, T, H, W)
             localization_map = localization_map.squeeze(dim=1)
             #print(localization_map)
                 
             if localization_map.device != torch.device("cpu"):
                 localization_map = localization_map.cpu()
-            dict_inputs = inputs[i]
-            if dict_inputs.device != torch.device("cpu"):
-                dict_inputs = dict_inputs.cpu()
-                #input_cpu = dict_inputs.copy()
+            
             #pathlib.Path(filename)
-            filename_path = pathlib.Path(filename)
             #video=os.path.basename(filename)
             #numpy.save(path/f'localization_map_{filename_path.parent.stem}_{i}_{hash(localization_map)}.npy', localization_map.numpy(),fix_imports=True)
             #numpy.save(path/f'input_{i}.npy', input.numpy())
-            hash_val = hash(localization_map)
-            locmap_input = {
-                f'localization_map_{i}_{hash_val}.npy': localization_map.numpy(),
-                f'inputNew_{i}_{hash_val}.npy': dict_inputs.numpy()
-            }
-
-            if f'{filename_path.parent.stem}' not in complete_locmap_input:
-                complete_locmap_input[f'{filename_path.parent.stem}'] = {}
-
-            complete_locmap_input[f'{filename_path.parent.stem}'].update(
-                locmap_input)
 
             heatmap = self.colormap(localization_map.numpy())  ## converted torch to numpy
+            loc_maps.append(localization_map.numpy())
             heatmap = heatmap[:, :, :, :, :3]
             # Permute input from (B, C, T, H, W) to (B, T, H, W, C)
             curr_inp = inputs[i].permute(0, 2, 3, 4, 1)
@@ -217,15 +206,18 @@ class GradCAM:
             curr_inp = curr_inp.permute(0, 1, 4, 2, 3)
             result_ls.append(curr_inp)
 
+        # WARNING: just works for batchsize = 1
+        save_dict = {f"{pathlib.Path(filenames[0]).parent.stem}": (inputs_cpu, loc_maps)}
+
         if os.path.exists("complete_locmap_input.pkl"):
             with open("complete_locmap_input.pkl", "rb") as save_file:  # Saving the dictionary created
                 save_complete_locmap_input = pickle.load(save_file)
         else:
-            save_complete_locmap_input = {}
+            save_complete_locmap_input = []
 
         with open("complete_locmap_input.pkl", "wb") as save_file:  # Saving the dictionary created
-            pickle.dump(save_complete_locmap_input.update(
-                complete_locmap_input), save_file)
+            save_complete_locmap_input.append(save_dict)
+            pickle.dump(save_complete_locmap_input, save_file)
 
 
         return result_ls, preds

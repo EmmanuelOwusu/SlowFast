@@ -9,8 +9,8 @@ from iopath.common.file_io import g_pathmgr
 logger = logging.getLogger(__name__)
 
 FPS = 30
-AVA_VALID_FRAMES = range(902, 1799)
-
+AVA_VALID_FRAMES = range(902, 1799)   #change
+#AVA_VALID_FRAMES = range(2, 32)
 
 def load_image_lists(cfg, is_train):
     """
@@ -133,7 +133,9 @@ def get_keyframe_data(boxes_and_labels):
         0: 900
         30: 901
         """
-        return (sec - 900) * FPS
+	#return (sec - 2) * FPS
+        return (sec - 900) * FPS     ##change
+	
 
     keyframe_indices = []
     keyframe_boxes_and_labels = []

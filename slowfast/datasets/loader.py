@@ -62,6 +62,7 @@ def construct_loader(cfg, split, is_precise_bn=False):
         split (str): the split of the data loader. Options include `train`,
             `val`, and `test`.
     """
+    # import ipdb; ipdb.set_trace() # debugging starts here
     assert split in ["train", "val", "test"]
     if split in ["train"]:
         dataset_name = cfg.TRAIN.DATASET
@@ -81,6 +82,8 @@ def construct_loader(cfg, split, is_precise_bn=False):
 
     # Construct the dataset
     dataset = build_dataset(dataset_name, cfg, split)
+    import ipdb; ipdb.set_trace()
+    dataset[0]
 
     if isinstance(dataset, torch.utils.data.IterableDataset):
         loader = torch.utils.data.DataLoader(

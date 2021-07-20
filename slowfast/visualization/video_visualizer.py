@@ -384,6 +384,7 @@ class VideoVisualizer:
         self.mode = mode
         self.num_classes = num_classes
         self.class_names, _, _ = get_class_names(class_names_path, None, None)
+        #self.class_names = get_class_names(class_names_path)
         self.top_k = top_k
         self.thres = thres
         self.lower_thres = lower_thres

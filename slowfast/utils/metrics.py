@@ -27,8 +27,9 @@ def topks_correct(preds, labels, ks):
     ), "Batch dim of predictions and labels must match"
     # Find the top max_k predictions for each sample
     _top_max_k_vals, top_max_k_inds = torch.topk(
-        preds, max(ks), dim=1, largest=True, sorted=True
-    )
+        preds,3, dim=1, largest=True, sorted=True
+    )  ####error change to max(ks) == 3
+    
     # (batch_size, max_k) -> (max_k, batch_size).
     top_max_k_inds = top_max_k_inds.t()
     # (batch_size, ) -> (max_k, batch_size).
